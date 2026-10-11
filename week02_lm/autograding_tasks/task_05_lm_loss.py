@@ -1,5 +1,5 @@
 """Task 05: masked language-model loss."""
-
+import numpy as np
 import torch
 from torch.functional import F
 
@@ -14,11 +14,20 @@ def compute_lm_loss(logits, targets, eos_ix):
     :param input ix: int32 matrix of tokens, shape: [batch_size, length]; padded with eos_ix
     :returns: scalar loss function, mean crossentropy over non-eos tokens
     """
-    input_ix = torch.as_tensor(input_ix, dtype=torch.int64)
+    # input_ix = torch.as_tensor(input_ix, dtype=torch.int64)
 
     # Your task: implement loss function as per formula above
     # your loss should only be computed on actual tokens, excluding padding
     # predicting actual tokens and first EOS do count. Subsequent EOS-es don't
     # you may or may not want to use the compute_mask function from above.
 
-    pass
+    logits = torch.as_tensor(logits, dtype=torch.float32)
+    targets = torch.as_tensor(targets, dtype=torch.int64)
+
+    target_pred_proba = torch.gather(torch.log_softmax(logits, dim=2), dim=-1, index=targets.unsqueeze(-1)).squeeze(-1)
+    
+    mask = compute_mask(targets, eos_ix)
+
+    batch_size = len(targets)
+
+    return -1 / batch_size * torch.sum(mask * target_pred_proba).item()
