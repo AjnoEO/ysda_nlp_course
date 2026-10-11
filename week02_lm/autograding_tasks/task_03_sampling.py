@@ -1,7 +1,7 @@
 """Task 03: temperature and nucleus sampling."""
 import numpy as np
-import random
-# from numpy import random
+# import random
+from numpy import random
 
 def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng = None):
     """
@@ -16,13 +16,14 @@ def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng = Non
     possible_tokens = list(dist.keys())
     power = 1 if temperature == 0.0 else (1 / temperature)
     probs = np.array([dist[next_token] ** power for next_token in possible_tokens])
-    # probs /= np.sum(probs)
+    probs /= np.sum(probs)
     if temperature == 0.0:
         max_prob = np.max(probs)
-        # count = np.sum(probs == max_prob)
+        count = np.sum(probs == max_prob)
         probs[probs != max_prob] = 0.0
-        # probs[probs != 0.0] = 1.0 / count
-    return random.choices(possible_tokens, weights=probs)[0]
+        probs[probs != 0.0] = 1.0 / count
+    # return random.choices(possible_tokens, weights=probs)[0]
+    return random.choice(possible_tokens, p=probs)
 
 
 def nucleus_filter(dist: dict[str, float], nucleus=0.9):
@@ -47,5 +48,6 @@ def sample_nucleus(dist: dict[str, float], nucleus=0.9, rng=None):
     dist = nucleus_filter(dist, nucleus=nucleus)
     possible_tokens = list(dist.keys())
     probs = np.array(list(dist.values()))
-    # probs /= np.sum(probs)
-    return random.choices(possible_tokens, weights=probs)[0]
+    probs /= np.sum(probs)
+    # return random.choices(possible_tokens, weights=probs)[0]
+    return random.choice(possible_tokens, p=probs)
