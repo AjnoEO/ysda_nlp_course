@@ -24,6 +24,9 @@ def compute_lm_loss(logits, targets, eos_ix):
     logits = torch.as_tensor(logits, dtype=torch.float32)
     targets = torch.as_tensor(targets, dtype=torch.int64)
 
+    if logits.ndim != 3 or targets.ndim != 2 or logits.shape[:2] != targets.shape:
+        raise ValueError()
+
     token_losses = - torch.gather(torch.log_softmax(logits, dim=2), dim=-1, index=targets.unsqueeze(-1)).squeeze(-1)
 
     mask = compute_mask(targets, eos_ix)
