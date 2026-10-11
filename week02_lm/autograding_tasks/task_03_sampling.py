@@ -26,17 +26,18 @@ def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng: Gene
 
 def nucleus_filter(dist: dict[str, float], nucleus=0.9):
     """Keep the smallest high-probability token set with cumulative mass >= nucleus."""
-    if not (0.0 <= nucleus <= 1.0):
+    if not (0.0 < nucleus <= 1.0):
         raise ValueError()
     dist_list = sorted(dist.items(), key=lambda i: (-i[1], i[0]))
-    if nucleus == 0.0:
-        return {dist_list[0][0]: dist_list[0][1]}
-    result: dict[str, float] = {}
-    total_p = 0.0
-    for token, p in dist_list:
+    result: dict[str, float] = {dist_list[0][0]: dist_list[0][1]}
+    # if nucleus == 0.0:
+    #     return result
+    total_p = dist_list[0][1]
+    for token, p in dist_list[1:]:
+        if total_p + p > nucleus: break
         result[token] = p
         total_p += p
-        if total_p >= nucleus: break
+        # if total_p >= nucleus: break
     return result
 
 
