@@ -1,3 +1,7 @@
+# Repo-specific
+week02_lm/*.json
+
+
 # node and NPM
 npm-debug.log
 node_modules
