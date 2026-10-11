@@ -8,6 +8,8 @@ def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng: Gene
     :param temperature: samples proportionally to lm probabilities ^ (1 / temperature)
         if temperature == 0, always takes most likely token. Break ties arbitrarily.
     """
+    if temperature < 0.0:
+        raise ValueError()
     if rng is None:
         rng = default_rng()
     possible_tokens = list(dist.keys())
