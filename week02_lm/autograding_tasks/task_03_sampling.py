@@ -10,6 +10,8 @@ def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng = Non
     """
     if temperature < 0.0:
         raise ValueError()
+    if len(dist) == 0:
+        raise ValueError()
     possible_tokens = list(dist.keys())
     power = 1 if temperature == 0.0 else (1 / temperature)
     probs = np.array([dist[next_token] ** power for next_token in possible_tokens])
