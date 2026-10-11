@@ -36,10 +36,10 @@ def nucleus_filter(dist: dict[str, float], nucleus=0.9):
     #     return result
     total_p = dist_list[0][1]
     for token, p in dist_list[1:]:
-        if total_p + p > nucleus: break
+        # if total_p + p > nucleus: break
+        if total_p >= nucleus: break
         result[token] = p
         total_p += p
-        # if total_p >= nucleus: break
     return result
 
 
