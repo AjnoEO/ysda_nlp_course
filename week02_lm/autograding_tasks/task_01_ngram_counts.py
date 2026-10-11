@@ -32,6 +32,9 @@ def count_ngrams(lines: Iterable[str], n: int):
     implements this padding rule in get_possible_next_tokens - keep the two consistent, or
     the model will look up prefixes that you never counted.
     """
+    if n <= 0:
+        raise ValueError()
+
     counts = defaultdict(Counter)
     # counts[(word1, word2)][word3] = how many times word3 occured after (word1, word2)
 

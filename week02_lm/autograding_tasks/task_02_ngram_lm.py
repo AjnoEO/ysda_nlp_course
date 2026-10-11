@@ -1,5 +1,5 @@
 """Task 02: n-gram language model."""
-from task_01_ngram_counts import *
+from .task_01_ngram_counts import *
 
 class NGramLanguageModel:
     def __init__(self, lines, n):
