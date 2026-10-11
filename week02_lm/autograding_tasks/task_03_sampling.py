@@ -1,8 +1,8 @@
 """Task 03: temperature and nucleus sampling."""
 import numpy as np
-from numpy.random import default_rng, Generator
+import random
 
-def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng: Generator = None):
+def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng = None):
     """
     return next token after prefix;
     :param temperature: samples proportionally to lm probabilities ^ (1 / temperature)
@@ -10,18 +10,16 @@ def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng: Gene
     """
     if temperature < 0.0:
         raise ValueError()
-    if rng is None:
-        rng = default_rng()
     possible_tokens = list(dist.keys())
     power = 1 if temperature == 0.0 else (1 / temperature)
     probs = np.array([dist[next_token] ** power for next_token in possible_tokens])
-    probs /= np.sum(probs)
+    # probs /= np.sum(probs)
     if temperature == 0.0:
         max_prob = np.max(probs)
-        count = np.sum(probs == max_prob)
+        # count = np.sum(probs == max_prob)
         probs[probs != max_prob] = 0.0
-        probs[probs != 0.0] = 1.0 / count
-    return rng.choice(possible_tokens, p=probs)
+        # probs[probs != 0.0] = 1.0 / count
+    return random.choices(possible_tokens, weights=probs)
 
 
 def nucleus_filter(dist: dict[str, float], nucleus=0.9):
@@ -43,10 +41,8 @@ def nucleus_filter(dist: dict[str, float], nucleus=0.9):
 
 def sample_nucleus(dist: dict[str, float], nucleus=0.9, rng=None):
     """Sample one token after applying nucleus filtering."""
-    if rng is None:
-        rng = default_rng()
     dist = nucleus_filter(dist, nucleus=nucleus)
     possible_tokens = list(dist.keys())
     probs = np.array(list(dist.values()))
-    probs /= np.sum(probs)
-    return rng.choice(possible_tokens, p=probs)
+    # probs /= np.sum(probs)
+    return random.choices(possible_tokens, weights=probs)
