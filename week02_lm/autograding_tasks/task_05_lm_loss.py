@@ -24,10 +24,9 @@ def compute_lm_loss(logits, targets, eos_ix):
     logits = torch.as_tensor(logits, dtype=torch.float32)
     targets = torch.as_tensor(targets, dtype=torch.int64)
 
-    target_pred_proba = torch.gather(torch.log_softmax(logits, dim=2), dim=-1, index=targets.unsqueeze(-1)).squeeze(-1)
-    
+    token_losses = - torch.gather(torch.log_softmax(logits, dim=2), dim=-1, index=targets.unsqueeze(-1)).squeeze(-1)
+
     mask = compute_mask(targets, eos_ix)
+    token_losses = token_losses.masked_fill_(~mask, 0.0)
 
-    batch_size = len(targets)
-
-    return -1 / batch_size * torch.sum(mask * target_pred_proba).item()
+    return token_losses.sum(dim=1).mean()
