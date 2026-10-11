@@ -10,7 +10,8 @@ class NGramLanguageModel:
         :param n: computes probability of next token given (n - 1) previous words
         :param lines: an iterable of strings with space-separated tokens
         """
-        assert n >= 1
+        if n <= 0:
+            raise ValueError()
         self.n = n
 
         counts = count_ngrams(lines, self.n)
