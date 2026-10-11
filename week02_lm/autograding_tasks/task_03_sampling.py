@@ -1,16 +1,45 @@
 """Task 03: temperature and nucleus sampling."""
+import numpy as np
+from numpy.random import default_rng, Generator
+
+def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng: Generator = None):
+    """
+    return next token after prefix;
+    :param temperature: samples proportionally to lm probabilities ^ (1 / temperature)
+        if temperature == 0, always takes most likely token. Break ties arbitrarily.
+    """
+    if rng is None:
+        rng = default_rng()
+    possible_tokens = list(dist.keys())
+    power = 1 if temperature == 0.0 else (1 / temperature)
+    probs = np.array([dist[next_token] ** power for next_token in possible_tokens])
+    probs /= np.sum(probs)
+    if temperature == 0.0:
+        max_prob = np.max(probs)
+        count = np.sum(probs == max_prob)
+        probs[probs != max_prob] = 0.0
+        probs[probs != 0.0] = 1.0 / count
+    return rng.choice(possible_tokens, p=probs)
 
 
-def sample_with_temperature(dist, temperature=1.0, rng=None):
-    """Sample one token from a probability distribution with temperature."""
-    raise NotImplementedError
-
-
-def nucleus_filter(dist, nucleus=0.9):
+def nucleus_filter(dist: dict[str, float], nucleus=0.9):
     """Keep the smallest high-probability token set with cumulative mass >= nucleus."""
-    raise NotImplementedError
+    dist_list = sorted(dist.items(), key=lambda i: (-i[1], i[0]))
+    result: dict[str, float] = {}
+    total_p = 0.0
+    for token, p in dist_list:
+        result[token] = p
+        total_p += p
+        if total_p >= nucleus: break
+    return result
 
 
-def sample_nucleus(dist, nucleus=0.9, rng=None):
+def sample_nucleus(dist: dict[str, float], nucleus=0.9, rng=None):
     """Sample one token after applying nucleus filtering."""
-    raise NotImplementedError
+    if rng is None:
+        rng = default_rng()
+    dist = nucleus_filter(dist, nucleus=nucleus)
+    possible_tokens = list(dist.keys())
+    probs = np.array(list(dist.values()))
+    probs /= np.sum(probs)
+    return rng.choice(possible_tokens, p=probs)
