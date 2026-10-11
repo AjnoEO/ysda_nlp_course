@@ -1,6 +1,7 @@
 """Task 03: temperature and nucleus sampling."""
 import numpy as np
 import random
+# from numpy import random
 
 def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng = None):
     """
@@ -21,7 +22,7 @@ def sample_with_temperature(dist: dict[str, float], temperature = 1.0, rng = Non
         # count = np.sum(probs == max_prob)
         probs[probs != max_prob] = 0.0
         # probs[probs != 0.0] = 1.0 / count
-    return random.choices(possible_tokens, weights=probs)
+    return random.choices(possible_tokens, weights=probs)[0]
 
 
 def nucleus_filter(dist: dict[str, float], nucleus=0.9):
@@ -47,4 +48,4 @@ def sample_nucleus(dist: dict[str, float], nucleus=0.9, rng=None):
     possible_tokens = list(dist.keys())
     probs = np.array(list(dist.values()))
     # probs /= np.sum(probs)
-    return random.choices(possible_tokens, weights=probs)
+    return random.choices(possible_tokens, weights=probs)[0]
