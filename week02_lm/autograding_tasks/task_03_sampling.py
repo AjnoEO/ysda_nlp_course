@@ -30,6 +30,8 @@ def nucleus_filter(dist: dict[str, float], nucleus=0.9):
     """Keep the smallest high-probability token set with cumulative mass >= nucleus."""
     if not (0.0 < nucleus <= 1.0):
         raise ValueError()
+    if len(dist) == 0:
+        raise ValueError()
     dist_list = sorted(dist.items(), key=lambda i: (-i[1], i[0]))
     result: dict[str, float] = {dist_list[0][0]: dist_list[0][1]}
     # if nucleus == 0.0:
