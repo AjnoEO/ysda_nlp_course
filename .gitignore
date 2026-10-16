@@ -2,6 +2,10 @@
 week02_lm/*.json
 
 
+# Logs
+logs*
+
+
 # node and NPM
 npm-debug.log
 node_modules
