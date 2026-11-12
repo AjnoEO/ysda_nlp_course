@@ -20,8 +20,11 @@ class RMSNorm(nn.Module):
         self.eps = eps
         self.weight = nn.Parameter(torch.zeros(dim))
 
-    def forward(self, x):
-        raise NotImplementedError("TODO: implement RMSNorm.forward")
+    def forward(self, x: torch.Tensor):
+        input_dtype = x.dtype
+        x = x.to(torch.float32)
+        x = x / torch.unsqueeze(torch.sqrt(torch.square(x).mean(dim=-1) + self.eps), dim=-1)
+        return (x * (1 + self.weight)).to(input_dtype)
 
 
 class RMSNormGated(nn.Module):
@@ -32,19 +35,26 @@ class RMSNormGated(nn.Module):
         self.eps = eps
         self.weight = nn.Parameter(torch.ones(dim))
 
-    def forward(self, x, gate):
-        raise NotImplementedError("TODO: implement RMSNormGated.forward")
+    def forward(self, x: torch.Tensor, gate: torch.Tensor):
+        input_dtype = x.dtype
+        x = x.to(torch.float32)
+        x = x / torch.unsqueeze(torch.sqrt(torch.square(x).mean(dim=-1) + self.eps), dim=-1)
+        x = x.to(input_dtype)
+        x = self.weight * x
+        x = x * F.silu(gate.float())
+        return (x).to(input_dtype)
 
 
 # ============================================================================
 # Rotary position embedding (partial RoPE)
 # ============================================================================
 
-def rotate_half(x):
+def rotate_half(x: torch.Tensor):
     """Rotates half the hidden dims of the input."""
     # split x in half along the last dim: x1, x2
     # return cat(-x2, x1) along the last dim
-    raise NotImplementedError("TODO: implement rotate_half")
+    x1, x2 = x.split(x.shape[-1] // 2, dim=-1)
+    return torch.cat([-x2, x1], dim=-1)
 
 
 class Qwen35RotaryEmbedding(nn.Module):
@@ -65,15 +75,25 @@ class Qwen35RotaryEmbedding(nn.Module):
 
     @torch.no_grad()
     def forward(self, hidden_states: torch.Tensor, position_ids: torch.LongTensor):
-        raise NotImplementedError("TODO: implement Qwen35RotaryEmbedding.forward")
+        print(position_ids.shape, self.get_buffer("inv_freq").shape)
+        freqs = torch.kron(position_ids, self.get_buffer("inv_freq"))
+        emb = freqs # torch.cat([freqs, freqs], dim=-1).to(hidden_states.dtype)
+        return torch.cos(emb), torch.sin(emb)
 
 
-def apply_rotary_pos_emb(q, k, cos, sin):
+def apply_rotary_pos_emb(q: torch.Tensor, k: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor):
     """Applies partial RoPE to q and k; see homework.ipynb for the derivation."""
     # only the first rotary_dim channels of q/k get rotated; the rest pass through unchanged
     # rotated = x * cos + rotate_half(x) * sin, applied to that leading slice, then re-concatenated
     # cos/sin need a head dim inserted to broadcast against q/k's (b, heads, s, dim) shape
-    raise NotImplementedError("TODO: implement apply_rotary_pos_emb")
+    # cos, sin = cos.unsqueeze(2), sin.unsqueeze(2)
+    print(q.shape, cos.shape)
+    rotary_dim = cos.shape[-1]
+    q[..., :rotary_dim] = q[..., :rotary_dim] * cos + rotate_half(q[..., :rotary_dim]) * sin
+    k[..., :rotary_dim] = k[..., :rotary_dim] * cos + rotate_half(k[..., :rotary_dim]) * sin
+    # q = q * cos + rotate_half(q) * sin
+    # k = k * cos + rotate_half(k) * sin
+    return q, k
 
 
 # ============================================================================
