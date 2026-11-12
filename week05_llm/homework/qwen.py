@@ -76,7 +76,7 @@ class Qwen35RotaryEmbedding(nn.Module):
     @torch.no_grad()
     def forward(self, hidden_states: torch.Tensor, position_ids: torch.LongTensor):
         print(position_ids.shape, self.get_buffer("inv_freq").shape)
-        freqs = torch.kron(position_ids, self.get_buffer("inv_freq"))
+        freqs = position_ids.unsqueeze(-1) * self.get_buffer("inv_freq")
         emb = freqs # torch.cat([freqs, freqs], dim=-1).to(hidden_states.dtype)
         return torch.cos(emb), torch.sin(emb)
 
